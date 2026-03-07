@@ -1,26 +1,41 @@
 const express = require("express");
 const cors = require("cors");
-const bodyParser = require("body-parser");
 
 const app = express();
-
-app.use(cors());
-app.use(bodyParser.json());
-
 const PORT = 5000;
 
+app.use(cors());
+app.use(express.json());
+
+let responses = []; // temporary storage
+
+// Test route
 app.get("/", (req, res) => {
-    res.send("Backend server is running ❤️");
+    res.send("Backend is working ❤️");
 });
 
+// Get all responses
+app.get("/responses", (req, res) => {
+    res.json(responses);
+});
+
+// Receive answer
 app.post("/answer", (req, res) => {
+
     const { answer } = req.body;
 
-    if(answer === "yes"){
-        res.json({message: "She said YES ❤️"});
-    } else {
-        res.json({message: "She said NO 💔"});
-    }
+    const newResponse = {
+        answer: answer,
+        time: new Date()
+    };
+
+    responses.push(newResponse);
+
+    res.json({
+        message: "Response saved successfully",
+        data: newResponse
+    });
+
 });
 
 app.listen(PORT, () => {
