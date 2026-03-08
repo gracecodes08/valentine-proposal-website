@@ -2,15 +2,17 @@
 
 A cute, interactive 6-page proposal website built with pure HTML, CSS & JavaScript. No frameworks. No backend. Just vibes. 💕
 
+🔗 **Live Demo:** https://bit.ly/4lndnZA
+
 ---
 
 ## ✨ Features
 
-- 🏠 **Landing Page** — falling heart confetti, animated button
+- 🏠 **Landing Page** — falling heart confetti, animated button, fully customizable
 - 📸 **Memory Timeline** — 3 customizable memory cards with photos & songs
 - 🎯 **Quiz** — "How well do you know us?" with 3 funny questions
-- 💕 **Heart Catch Game** — catch 10 falling hearts to unlock the next page
-- 💌 **Proposal Page** — the big question, with a YES explosion and a NO button that runs away
+- 💕 **Heart Catch Game** — catch 3 falling hearts to unlock the next page
+- 💌 **Proposal Page** — the big question, YES explosion & a NO button that runs away
 - 🎉 **Ending Page** — confetti, memories, and a very legally binding contract
 
 ---
@@ -18,7 +20,7 @@ A cute, interactive 6-page proposal website built with pure HTML, CSS & JavaScri
 ## 🛠 Tech Stack
 
 - HTML5 / CSS3 / Vanilla JavaScript
-- Canvas API (heart confetti & explosion)
+- Canvas API (heart confetti & explosion effects)
 - localStorage (saves photos, songs, customizations)
 - Base64 URL encoding (shareable link)
 - Hosted on **Vercel**
@@ -46,9 +48,9 @@ proposal-website/
 1. Open the site
 2. Click **✏️ Customize** at the bottom
 3. Fill in all 5 tabs: Landing, Memories, Quiz, Proposal, Ending
-4. Upload photos in the Memories tab
+4. Upload photos & songs in the Memories tab
 5. Click **Save & Generate Link 🔗**
-6. Copy the link and send it to your person!! 💌
+6. Shorten it on bit.ly and send it!! 💌
 
 ### As the Person Receiving It
 1. Open the link
@@ -59,9 +61,9 @@ proposal-website/
 
 ## 📸 Notes on Photos & Songs
 
-- Photos and songs are stored in **localStorage** (on the creator's device)
-- They do **not** transfer via the shareable link (URL would be too long)
-- For the best demo experience, show the site on your own device where you uploaded the photos!
+- Photos and songs are stored in **localStorage** on the creator's device
+- They do **not** transfer via the shareable link (files are too large for a URL)
+- Best demo experience: show creator view on your laptop, viewer view on your phone!!
 
 ---
 
