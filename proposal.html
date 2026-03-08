@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>The Big Question 💌</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,500&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    :root{--red:#e63946;--pink:#ff6b9d;--dark:#2d1b2e}
+    body{min-height:100vh;background:linear-gradient(160deg,#fff0f5 0%,#fce8ff 50%,#ffe8f0 100%);
+      font-family:'Nunito',sans-serif;display:flex;align-items:center;justify-content:center;
+      padding:2rem 1rem;overflow:hidden;position:relative}
+    canvas{position:fixed;inset:0;pointer-events:none;z-index:0;display:none}
+
+    /* NO BOX — content floats freely */
+    .content{position:relative;z-index:10;max-width:500px;width:90vw;text-align:center;
+      padding:2rem;animation:popIn .8s cubic-bezier(.22,1,.36,1) both}
+    @keyframes popIn{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+
+    .top-emoji{font-size:3.5rem;display:block;margin-bottom:1.2rem;animation:float 3s ease-in-out infinite}
+    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+
+    .pre-text{font-family:'Playfair Display',serif;font-size:clamp(1rem,2.5vw,1.25rem);
+      color:#7a4050;font-style:italic;line-height:1.7;margin-bottom:.8rem;
+      text-shadow:0 2px 15px rgba(255,255,255,.7)}
+
+    .proposal-q{font-family:'Playfair Display',serif;font-size:clamp(1.6rem,4vw,2.3rem);
+      color:var(--dark);font-weight:700;line-height:1.3;margin-bottom:2.5rem;
+      text-shadow:0 2px 15px rgba(255,255,255,.7)}
+    .proposal-q em{color:var(--red);font-style:italic}
+
+    /* button container — relative so NO stays inside */
+    .btns{position:relative;display:flex;gap:1rem;justify-content:center;
+      align-items:center;flex-wrap:wrap;min-height:80px;width:100%}
+
+    .yes-btn{padding:1rem 2.8rem;background:linear-gradient(135deg,var(--pink),var(--red));
+      color:#fff;font-family:'Playfair Display',serif;font-size:1.2rem;font-style:italic;
+      border:none;border-radius:100px;cursor:pointer;
+      animation:pulse 2s ease-in-out infinite;transition:transform .2s;
+      box-shadow:0 6px 25px rgba(230,57,70,.4);position:relative;z-index:2}
+    @keyframes pulse{0%,100%{box-shadow:0 6px 25px rgba(230,57,70,.4)}
+      50%{box-shadow:0 8px 40px rgba(230,57,70,.65),0 0 0 8px rgba(230,57,70,.07)}}
+    .yes-btn:hover{transform:scale(1.08)}
+
+    .no-btn{padding:1rem 2.2rem;background:rgba(255,255,255,.75);color:#9a6070;
+      font-family:'Playfair Display',serif;font-size:1.2rem;font-style:italic;
+      border:2px solid rgba(230,57,70,.18);border-radius:100px;cursor:pointer;
+      /* absolute so we can move it while keeping it inside .btns parent */
+      position:relative;z-index:2;
+      transition:background .2s}
+    .no-btn:hover{background:rgba(255,255,255,.9)}
+
+    .extra{margin-top:1.5rem;font-style:italic;color:#9a5060;
+      font-size:.95rem;line-height:1.6;min-height:1.4rem;
+      text-shadow:0 1px 10px rgba(255,255,255,.6);animation:slideUp .4s ease}
+    @keyframes slideUp{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+  </style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+  <div class="content">
+    <span class="top-emoji">💌</span>
+    <p class="pre-text" id="preText">After all the chaos...</p>
+    <h1 class="proposal-q" id="propQ">Will you be my <em>partner in crime?</em></h1>
+    <div class="btns" id="btnsWrap">
+      <button class="yes-btn" id="yesBtn" onclick="clickYes()">YES 😎</button>
+      <button class="no-btn" id="noBtn" onclick="clickNo()">NO 🤨</button>
+    </div>
+    <p class="extra" id="extra"></p>
+  </div>
+
+  <script src="shared.js"></script>
+  <script>
+    // load proposal text
+    const d=loadData();
+    if(d.proposal){
+      document.getElementById('preText').textContent=d.proposal.pre||'After all the chaos...';
+      document.getElementById('propQ').innerHTML=d.proposal.q||'Will you be my <em>partner in crime?</em>';
+    }
+
+    let noCount=0;
+    const msgs=["Are you sure? 🤔","Really really sure?? 👀","Think very carefully... 💀","Okay okay relax 😭"];
+
+    function clickNo(){
+      noCount++;
+      const noBtn=document.getElementById('noBtn');
+      const wrap=document.getElementById('btnsWrap');
+
+      if(noCount>=4){
+        document.getElementById('extra').textContent="Okay okay relax 😭 I'll ask again later.";
+        noBtn.style.display='none';return;
+      }
+
+      // grow yes
+      const yes=document.getElementById('yesBtn');
+      yes.style.transform=`scale(${1+noCount*.13})`;
+      yes.style.transition='transform .3s ease';
+
+      // move NO — but CLAMP inside the btns container
+      const wrapRect=wrap.getBoundingClientRect();
+      const btnRect=noBtn.getBoundingClientRect();
+      const maxX=wrapRect.width/2 - btnRect.width/2 - 10;
+      const maxY=40;
+      const x=(Math.random()-.5)*maxX*1.5;
+      const y=(Math.random()-.5)*maxY;
+      // clamp
+      const cx=Math.max(-maxX,Math.min(maxX,x));
+      const cy=Math.max(-maxY,Math.min(maxY,y));
+      noBtn.style.transform=`translate(${cx}px,${cy}px)`;
+      noBtn.style.transition='transform .35s cubic-bezier(.22,1,.36,1)';
+
+      document.getElementById('extra').textContent=msgs[noCount-1];
+    }
+    window.clickNo=clickNo;
+
+    // heart explosion
+    const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+    let particles=[];
+    function resizeC(){canvas.width=innerWidth;canvas.height=innerHeight;}
+    resizeC();window.addEventListener('resize',resizeC);
+    function burst(){
+      const cx=innerWidth/2,cy=innerHeight/2;
+      for(let i=0;i<90;i++){
+        const a=Math.random()*Math.PI*2,sp=3+Math.random()*9;
+        particles.push({x:cx,y:cy,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-3,
+          s:6+Math.random()*15,o:1,
+          c:['#e63946','#ff6b9d','#ffb3c6','#fff','#ffc8dd'][Math.floor(Math.random()*5)]});
+      }
+    }
+    function dh(x,y,s,c,o){ctx.save();ctx.globalAlpha=o;ctx.fillStyle=c;ctx.beginPath();
+      ctx.moveTo(x,y+s*.3);ctx.bezierCurveTo(x,y-s*.1,x-s,y-s*.1,x-s,y+s*.4);
+      ctx.bezierCurveTo(x-s,y+s*.9,x,y+s*1.3,x,y+s*1.5);
+      ctx.bezierCurveTo(x,y+s*1.3,x+s,y+s*.9,x+s,y+s*.4);
+      ctx.bezierCurveTo(x+s,y-s*.1,x,y-s*.1,x,y+s*.3);ctx.fill();ctx.restore();}
+    function animP(){
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      particles=particles.filter(p=>p.o>.02);
+      particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.18;p.o-=.012;dh(p.x,p.y,p.s,p.c,Math.max(0,p.o));});
+      if(particles.length>0)requestAnimationFrame(animP);
+      else{ctx.clearRect(0,0,canvas.width,canvas.height);canvas.style.display='none';}
+    }
+
+    function clickYes(){
+      canvas.style.display='block';burst();animP();
+      let b=0;const iv=setInterval(()=>{burst();if(++b>=4)clearInterval(iv);},500);
+      const endingUrl='ending.html'+(isViewer()?window.location.search:'');
+      setTimeout(()=>{
+        document.querySelector('.content').style.opacity='0';
+        document.querySelector('.content').style.transition='opacity .6s ease';
+        setTimeout(()=>{window.location.href=endingUrl;},700);
+      },2200);
+    }
+    window.clickYes=clickYes;
+  </script>
+</body>
+</html>

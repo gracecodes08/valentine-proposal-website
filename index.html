@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Wait... 👀</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,500&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    :root{--red:#e63946;--pink:#ff6b9d;--dark:#2d1b2e}
+    body{min-height:100vh;background:linear-gradient(135deg,#ffe0ec 0%,#fff0f5 40%,#fce8ff 100%);
+      display:flex;align-items:center;justify-content:center;
+      font-family:'Nunito',sans-serif;overflow:hidden;position:relative;text-align:center}
+    canvas{position:fixed;inset:0;pointer-events:none;z-index:0}
+    .hero{position:relative;z-index:10;max-width:500px;width:90vw;padding:2rem;
+      animation:fadeUp .9s cubic-bezier(.22,1,.36,1) both}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:translateY(0)}}
+    .top-emoji{font-size:4rem;display:block;margin-bottom:1.2rem;animation:wobble 2.5s ease-in-out infinite}
+    @keyframes wobble{0%,100%{transform:rotate(0)scale(1)}25%{transform:rotate(-8deg)scale(1.08)}75%{transform:rotate(8deg)scale(1.08)}}
+    h1{font-family:'Playfair Display',serif;font-size:clamp(2rem,5.5vw,3.2rem);color:var(--dark);
+      line-height:1.2;margin-bottom:1rem;text-shadow:0 2px 20px rgba(255,255,255,.6)}
+    h1 em{color:var(--red);font-style:italic}
+    .sub{font-size:clamp(1rem,2.5vw,1.2rem);color:#7a4a5a;font-style:italic;
+      margin-bottom:3rem;line-height:1.6}
+    .btn{display:inline-block;padding:1.1rem 3rem;
+      background:linear-gradient(135deg,var(--pink),var(--red));color:#fff;
+      font-family:'Playfair Display',serif;font-size:1.2rem;font-style:italic;
+      border:none;border-radius:100px;cursor:pointer;text-decoration:none;
+      box-shadow:0 8px 30px rgba(230,57,70,.45);
+      animation:pulse 2.2s ease-in-out infinite;transition:transform .2s}
+    @keyframes pulse{0%,100%{box-shadow:0 8px 30px rgba(230,57,70,.45)}
+      50%{box-shadow:0 8px 50px rgba(230,57,70,.7),0 0 0 8px rgba(230,57,70,.08)}}
+    .btn:hover{transform:scale(1.07)}
+    .hint{margin-top:1.5rem;font-size:.78rem;color:#c090a0;font-style:italic}
+
+    .creator-bar{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);
+      z-index:100;display:flex;gap:.8rem;flex-wrap:wrap;justify-content:center}
+    .c-btn{padding:.6rem 1.4rem;background:rgba(255,255,255,.88);
+      border:1.5px solid rgba(230,57,70,.3);border-radius:100px;
+      font-size:.85rem;color:var(--red);cursor:pointer;font-family:'Nunito',sans-serif;
+      backdrop-filter:blur(10px);font-weight:700;transition:background .2s}
+    .c-btn:hover{background:#fff}
+    .c-btn.primary{background:linear-gradient(135deg,var(--pink),var(--red));
+      color:#fff;border:none;box-shadow:0 4px 16px rgba(230,57,70,.35)}
+
+    /* MODAL */
+    .overlay{position:fixed;inset:0;background:rgba(30,10,20,.55);backdrop-filter:blur(8px);
+      z-index:200;display:flex;align-items:center;justify-content:center;padding:1rem;
+      opacity:0;pointer-events:none;transition:opacity .3s}
+    .overlay.open{opacity:1;pointer-events:all}
+    .modal{background:linear-gradient(160deg,#fff8f8,#fef0f5);border-radius:2rem;
+      max-width:560px;width:100%;max-height:90vh;overflow:hidden;
+      box-shadow:0 30px 80px rgba(192,57,43,.25);
+      transform:translateY(30px);transition:transform .35s cubic-bezier(.22,1,.36,1);
+      display:flex;flex-direction:column}
+    .overlay.open .modal{transform:translateY(0)}
+
+    .modal-header{padding:1.4rem 1.8rem 0;flex-shrink:0}
+    .modal-header h2{font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--dark)}
+    .modal-header h2 em{color:var(--red);font-style:italic}
+    .modal-header p{font-style:italic;color:#8a4040;font-size:.88rem;margin-top:.2rem}
+    .close{float:right;background:none;border:none;font-size:1.4rem;cursor:pointer;color:#9a5050}
+
+    .tabs{display:flex;gap:.4rem;padding:.8rem 1.8rem 0;flex-wrap:wrap;flex-shrink:0}
+    .tab{padding:.45rem 1rem;border-radius:100px;font-size:.82rem;font-weight:700;
+      cursor:pointer;border:1.5px solid rgba(230,57,70,.2);background:rgba(255,255,255,.6);
+      color:#9a5060;transition:all .2s;font-family:'Nunito',sans-serif}
+    .tab.active{background:linear-gradient(135deg,var(--pink),var(--red));
+      color:#fff;border-color:transparent;box-shadow:0 3px 12px rgba(230,57,70,.3)}
+
+    .tab-content{flex:1;overflow-y:auto;padding:1.2rem 1.8rem 1rem}
+    .tab-content::-webkit-scrollbar{width:4px}
+    .tab-content::-webkit-scrollbar-thumb{background:var(--pink);border-radius:4px}
+    .panel{display:none}.panel.active{display:block}
+
+    .field-label{font-size:.78rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+      color:var(--red);margin:.9rem 0 .35rem;display:block}
+    input[type=text],textarea{width:100%;padding:.65rem 1rem;
+      border:1.5px solid rgba(230,57,70,.18);border-radius:.85rem;
+      font-family:'Nunito',sans-serif;font-size:.93rem;color:var(--dark);
+      background:rgba(255,255,255,.75);outline:none;margin-bottom:.4rem}
+    input:focus,textarea:focus{border-color:var(--pink)}
+    textarea{resize:vertical;min-height:65px}
+
+    /* memory blocks with photo */
+    .mem-block{background:rgba(255,255,255,.55);border-radius:1.2rem;padding:1rem;
+      margin-bottom:.8rem;border:1.5px solid rgba(230,57,70,.1)}
+    .mem-block .m-title{font-weight:700;font-size:.85rem;color:var(--red);margin-bottom:.6rem}
+    .photo-upload-row{display:flex;align-items:center;gap:.8rem;margin-bottom:.4rem}
+    .photo-thumb{width:56px;height:56px;border-radius:.8rem;object-fit:cover;
+      border:2px solid rgba(230,57,70,.15);flex-shrink:0;display:none}
+    .photo-thumb.show{display:block}
+    .photo-placeholder{width:56px;height:56px;border-radius:.8rem;
+      background:linear-gradient(135deg,#ffd6e8,#e8d5ff);
+      display:flex;align-items:center;justify-content:center;
+      font-size:1.4rem;flex-shrink:0;border:2px dashed rgba(230,57,70,.2)}
+    .upload-label{padding:.45rem 1rem;background:rgba(230,57,70,.07);
+      border:1.5px dashed rgba(230,57,70,.3);border-radius:.8rem;
+      font-size:.82rem;color:var(--red);cursor:pointer;font-style:italic;
+      transition:background .2s;font-family:'Nunito',sans-serif}
+    .upload-label:hover{background:rgba(230,57,70,.13)}
+    .upload-label input{display:none}
+    .photo-name{font-size:.78rem;color:#9a6070;font-style:italic}
+
+    /* quiz blocks */
+    .q-block{background:rgba(255,255,255,.55);border-radius:1.2rem;padding:1rem;
+      margin-bottom:.8rem;border:1.5px solid rgba(230,57,70,.1)}
+    .q-block .q-title{font-weight:700;font-size:.85rem;color:var(--red);margin-bottom:.5rem}
+    .radio-hint{font-size:.75rem;color:#9a6070;font-style:italic;margin-bottom:.4rem}
+    .opt-row{display:flex;align-items:center;gap:.5rem;margin-bottom:.35rem}
+    .opt-row input[type=radio]{accent-color:var(--red);width:15px;height:15px;flex-shrink:0;cursor:pointer}
+    .opt-row input[type=text]{margin-bottom:0;flex:1}
+
+    .modal-footer{padding:.8rem 1.8rem 1.4rem;flex-shrink:0;
+      border-top:1px solid rgba(230,57,70,.08)}
+    .save-btn{width:100%;padding:.95rem;
+      background:linear-gradient(135deg,var(--pink),var(--red));color:#fff;
+      font-family:'Playfair Display',serif;font-size:1.05rem;font-style:italic;
+      border:none;border-radius:1rem;cursor:pointer;
+      box-shadow:0 5px 20px rgba(230,57,70,.35);transition:transform .2s}
+    .save-btn:hover{transform:translateY(-2px)}
+
+    .link-box{display:none;margin-top:.8rem;padding:.9rem 1rem;
+      background:rgba(230,57,70,.06);border:1.5px solid rgba(230,57,70,.2);
+      border-radius:1rem;word-break:break-all;font-size:.8rem;color:#5a2030;line-height:1.7}
+    .link-box.show{display:block}
+    .copy-btn{margin-top:.5rem;padding:.45rem 1.2rem;
+      background:linear-gradient(135deg,var(--pink),var(--red));color:#fff;
+      border:none;border-radius:100px;font-size:.82rem;cursor:pointer;font-family:'Nunito',sans-serif}
+    .error-msg{color:var(--red);font-size:.82rem;font-style:italic;margin-top:.5rem;display:none}
+    .error-msg.show{display:block}
+    .remove-btn{background:none;border:none;color:#c0606070;font-size:.75rem;cursor:pointer;
+      font-family:'Nunito',sans-serif;padding:.1rem 0;text-decoration:underline;display:block;margin-top:.2rem}
+    .remove-btn:hover{color:var(--red)}
+  </style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+  <div class="hero">
+    <span class="top-emoji">👀</span>
+    <h1>Wait... before<br/>you go <em>anywhere</em></h1>
+    <p class="sub">I need to ask you<br/>something important.</p>
+    <a href="timeline.html" class="btn" id="startBtn">Start the Journey 💫</a>
+    <p class="hint">* this may change your life. probably.</p>
+  </div>
+
+  <div class="creator-bar" id="creatorBar">
+    <button class="c-btn" id="customizeBtn">✏️ Customize</button>
+    <button class="c-btn primary" id="generateBtn">🔗 Generate Link</button>
+  </div>
+
+  <div class="overlay" id="overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <button class="close" id="closeModal">✕</button>
+        <h2>Make it <em>Yours</em> 💌</h2>
+        <p>Customize everything — then generate your link!</p>
+      </div>
+      <div class="tabs">
+        <button class="tab active" data-tab="landing">🏠 Landing</button>
+        <button class="tab" data-tab="memories">📸 Memories</button>
+        <button class="tab" data-tab="quiz">🎯 Quiz</button>
+        <button class="tab" data-tab="proposal">💌 Proposal</button>
+        <button class="tab" data-tab="ending">🎉 Ending</button>
+      </div>
+      <div class="tab-content">
+
+        <!-- LANDING -->
+        <div class="panel active" id="tab-landing">
+          <span class="field-label">Main title line 1</span>
+          <input type="text" id="landH1" placeholder="Wait... before"/>
+          <span class="field-label">Main title line 2 (italic red word)</span>
+          <input type="text" id="landH2" placeholder="you go anywhere"/>
+          <span class="field-label">Subtitle</span>
+          <input type="text" id="landSub" placeholder="I need to ask you something important."/>
+          <span class="field-label">Button text</span>
+          <input type="text" id="landBtn" placeholder="Start the Journey 💫"/>
+          <span class="field-label">Small hint text at bottom</span>
+          <input type="text" id="landHint" placeholder="* this may change your life. probably."/>
+        </div>
+
+        <!-- MEMORIES -->
+        <div class="panel" id="tab-memories">
+          <!-- Memory 1 -->
+          <div class="mem-block">
+            <div class="m-title">Memory 1 📍</div>
+            <div class="photo-upload-row">
+              <div class="photo-placeholder" id="ph0">📍</div>
+              <img class="photo-thumb" id="pt0" alt=""/>
+              <div>
+                <label class="upload-label">📷 Photo<input type="file" accept="image/*" id="pi0"/></label>
+                <div class="photo-name" id="pn0"></div>
+                <button class="remove-btn" id="rp0" onclick="removePhoto(0)" style="display:none">✕ Remove</button>
+              </div>
+              <div>
+                <label class="upload-label">🎵 Song<input type="file" accept="audio/*" id="si0"/></label>
+                <div class="photo-name" id="sn0"></div>
+                <button class="remove-btn" id="rs0" onclick="removeSong(0)" style="display:none">✕ Remove</button>
+              </div>
+            </div>
+            <span class="field-label">Message</span>
+            <input type="text" id="m0" placeholder="We met here and everything went downhill 😂"/>
+          </div>
+          <!-- Memory 2 -->
+          <div class="mem-block">
+            <div class="m-title">Memory 2 ⚡</div>
+            <div class="photo-upload-row">
+              <div class="photo-placeholder" id="ph1">⚡</div>
+              <img class="photo-thumb" id="pt1" alt=""/>
+              <div>
+                <label class="upload-label">📷 Photo<input type="file" accept="image/*" id="pi1"/></label>
+                <div class="photo-name" id="pn1"></div>
+                <button class="remove-btn" id="rp1" onclick="removePhoto(1)" style="display:none">✕ Remove</button>
+              </div>
+              <div>
+                <label class="upload-label">🎵 Song<input type="file" accept="audio/*" id="si1"/></label>
+                <div class="photo-name" id="sn1"></div>
+                <button class="remove-btn" id="rs1" onclick="removeSong(1)" style="display:none">✕ Remove</button>
+              </div>
+            </div>
+            <span class="field-label">Message</span>
+            <input type="text" id="m1" placeholder="Our first fight... which I obviously won."/>
+          </div>
+          <!-- Memory 3 -->
+          <div class="mem-block">
+            <div class="m-title">Memory 3 🫂</div>
+            <div class="photo-upload-row">
+              <div class="photo-placeholder" id="ph2">🫂</div>
+              <img class="photo-thumb" id="pt2" alt=""/>
+              <div>
+                <label class="upload-label">📷 Photo<input type="file" accept="image/*" id="pi2"/></label>
+                <div class="photo-name" id="pn2"></div>
+                <button class="remove-btn" id="rp2" onclick="removePhoto(2)" style="display:none">✕ Remove</button>
+              </div>
+              <div>
+                <label class="upload-label">🎵 Song<input type="file" accept="audio/*" id="si2"/></label>
+                <div class="photo-name" id="sn2"></div>
+                <button class="remove-btn" id="rs2" onclick="removeSong(2)" style="display:none">✕ Remove</button>
+              </div>
+            </div>
+            <span class="field-label">Message</span>
+            <input type="text" id="m2" placeholder="Still stuck with me. Somehow."/>
+          </div>
+        </div>
+
+        <!-- QUIZ -->
+        <div class="panel" id="tab-quiz">
+          <div class="q-block">
+            <div class="q-title">Question 1</div>
+            <span class="field-label">Question</span>
+            <input type="text" id="q0q" placeholder="When did we first meet?"/>
+            <span class="field-label">Options — select ● the correct one</span>
+            <p class="radio-hint">Tick the circle next to the right answer!</p>
+            <div class="opt-row"><input type="radio" name="c0" value="0"/><input type="text" id="q0o0" placeholder="Option A"/></div>
+            <div class="opt-row"><input type="radio" name="c0" value="1"/><input type="text" id="q0o1" placeholder="Option B"/></div>
+            <div class="opt-row"><input type="radio" name="c0" value="2"/><input type="text" id="q0o2" placeholder="Option C"/></div>
+            <div class="opt-row"><input type="radio" name="c0" value="3"/><input type="text" id="q0o3" placeholder="Option D"/></div>
+            <span class="field-label">✅ Correct answer message</span>
+            <input type="text" id="q0ok" placeholder="Correct! Unfortunately you're stuck with me 😂"/>
+            <span class="field-label">❌ Wrong answer message</span>
+            <input type="text" id="q0fail" placeholder="Really?? That's how little you remember? 💀"/>
+          </div>
+          <div class="q-block">
+            <div class="q-title">Question 2</div>
+            <span class="field-label">Question</span>
+            <input type="text" id="q1q" placeholder="What's my most iconic trait?"/>
+            <span class="field-label">Options — select ● the correct one</span>
+            <p class="radio-hint">Tick the circle next to the right answer!</p>
+            <div class="opt-row"><input type="radio" name="c1" value="0"/><input type="text" id="q1o0" placeholder="Option A"/></div>
+            <div class="opt-row"><input type="radio" name="c1" value="1"/><input type="text" id="q1o1" placeholder="Option B"/></div>
+            <div class="opt-row"><input type="radio" name="c1" value="2"/><input type="text" id="q1o2" placeholder="Option C"/></div>
+            <div class="opt-row"><input type="radio" name="c1" value="3"/><input type="text" id="q1o3" placeholder="Option D"/></div>
+            <span class="field-label">✅ Correct answer message</span>
+            <input type="text" id="q1ok" placeholder="Exactly. You know me so well 😌"/>
+            <span class="field-label">❌ Wrong answer message</span>
+            <input type="text" id="q1fail" placeholder="Wrong! But I'll forgive you. This time. 😤"/>
+          </div>
+          <div class="q-block">
+            <div class="q-title">Question 3</div>
+            <span class="field-label">Question</span>
+            <input type="text" id="q2q" placeholder="How would you describe us?"/>
+            <span class="field-label">Options — select ● the correct one</span>
+            <p class="radio-hint">Tick the circle next to the right answer!</p>
+            <div class="opt-row"><input type="radio" name="c2" value="0"/><input type="text" id="q2o0" placeholder="Option A"/></div>
+            <div class="opt-row"><input type="radio" name="c2" value="1"/><input type="text" id="q2o1" placeholder="Option B"/></div>
+            <div class="opt-row"><input type="radio" name="c2" value="2"/><input type="text" id="q2o2" placeholder="Option C"/></div>
+            <div class="opt-row"><input type="radio" name="c2" value="3"/><input type="text" id="q2o3" placeholder="Option D"/></div>
+            <span class="field-label">✅ Correct answer message</span>
+            <input type="text" id="q2ok" placeholder="That's literally us 💕"/>
+            <span class="field-label">❌ Wrong answer message</span>
+            <input type="text" id="q2fail" placeholder="Hmm... I mean you're not wrong but also 😭"/>
+          </div>
+        </div>
+
+        <!-- PROPOSAL -->
+        <div class="panel" id="tab-proposal">
+          <span class="field-label">Intro line</span>
+          <input type="text" id="propPre" placeholder="After all the chaos..."/>
+          <span class="field-label">The question</span>
+          <input type="text" id="propQ" placeholder="Will you be my partner in crime?"/>
+        </div>
+
+        <!-- ENDING -->
+        <div class="panel" id="tab-ending">
+          <span class="field-label">Big title</span>
+          <input type="text" id="endL1" placeholder="Well well well..."/>
+          <span class="field-label">Subtitle</span>
+          <input type="text" id="endL2" placeholder="Looks like it's a date."/>
+          <span class="field-label">Contract lines (one per line)</span>
+          <textarea id="endFunny" rows="4" placeholder="You have successfully signed a lifetime contract.&#10;No refunds. No returns.&#10;Chaos is now a shared responsibility. 💀"></textarea>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button class="save-btn" id="saveBtn">Save & Generate Link 🔗</button>
+        <div class="error-msg" id="errMsg">😅 Something went wrong generating the link. Try again!</div>
+        <div class="link-box" id="linkBox">
+          <strong>Your shareable link 🔗</strong><br/>
+          <span id="linkText"></span><br/>
+          <button class="copy-btn" id="copyBtn">📋 Copy Link</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="shared.js"></script>
+  <script>
+    if(isViewer()){
+      document.getElementById('creatorBar').style.display='none';
+      document.getElementById('startBtn').href='timeline.html'+window.location.search;
+    }
+
+    // apply landing customizations on load
+    (function(){
+      const d=loadData(); const L=d.landing||{};
+      if(L.h1a||L.h1b){
+        document.querySelector('h1').innerHTML=(L.h1a||'Wait... before')+'<br/><em>'+(L.h1b||'you go anywhere')+'</em>';
+      }
+      if(L.sub) document.querySelector('.sub').textContent=L.sub;
+      if(L.btn) document.getElementById('startBtn').textContent=L.btn;
+      if(L.hint) document.querySelector('.hint').textContent=L.hint;
+    })();
+
+    // hearts canvas
+    const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+    function resize(){canvas.width=innerWidth;canvas.height=innerHeight;}
+    resize();window.addEventListener('resize',resize);
+    const C=['#e63946','#ff6b9d','#ffb3c6','#fff','#ffc8dd'];
+    let H=Array.from({length:22},()=>mk(true));
+    function mk(init){return{x:Math.random()*canvas.width,y:init?Math.random()*canvas.height:-20,
+      s:5+Math.random()*11,v:.4+Math.random()*.85,d:(Math.random()-.5)*.65,
+      o:.2+Math.random()*.4,w:Math.random()*Math.PI*2,c:C[Math.floor(Math.random()*C.length)]}}
+    function dh(x,y,s,c,o){ctx.save();ctx.globalAlpha=o;ctx.fillStyle=c;ctx.beginPath();
+      ctx.moveTo(x,y+s*.3);ctx.bezierCurveTo(x,y-s*.1,x-s,y-s*.1,x-s,y+s*.4);
+      ctx.bezierCurveTo(x-s,y+s*.9,x,y+s*1.3,x,y+s*1.5);
+      ctx.bezierCurveTo(x,y+s*1.3,x+s,y+s*.9,x+s,y+s*.4);
+      ctx.bezierCurveTo(x+s,y-s*.1,x,y-s*.1,x,y+s*.3);ctx.fill();ctx.restore();}
+    function loop(){ctx.clearRect(0,0,canvas.width,canvas.height);
+      if(H.length<28&&Math.random()<.018)H.push(mk(false));
+      H.forEach((h,i)=>{h.y+=h.v;h.x+=h.d+Math.sin(h.w)*.3;h.w+=.02;
+        dh(h.x,h.y,h.s,h.c,h.o);if(h.y>canvas.height+30)H[i]=mk(false);});
+      requestAnimationFrame(loop);}
+    loop();
+
+    // tabs
+    document.querySelectorAll('.tab').forEach(tab=>{
+      tab.addEventListener('click',()=>{
+        document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById('tab-'+tab.dataset.tab).classList.add('active');
+      });
+    });
+
+    // modal
+    const overlay=document.getElementById('overlay');
+    function openModal(){fillModal();overlay.classList.add('open');}
+    function closeModal(){overlay.classList.remove('open');}
+    document.getElementById('customizeBtn').addEventListener('click',openModal);
+    document.getElementById('generateBtn').addEventListener('click',openModal);
+    document.getElementById('closeModal').addEventListener('click',closeModal);
+    overlay.addEventListener('click',e=>{if(e.target===overlay)closeModal();});
+
+    // photo uploads
+    [0,1,2].forEach(i=>{
+      document.getElementById('pi'+i).addEventListener('change',function(){
+        const file=this.files[0]; if(!file) return;
+        const reader=new FileReader();
+        reader.onload=ev=>{
+          const d=loadData();
+          d.memories[i].photo=ev.target.result;
+          saveData(d);
+          const thumb=document.getElementById('pt'+i);
+          thumb.src=ev.target.result;
+          thumb.classList.add('show');
+          document.getElementById('ph'+i).style.display='none';
+          document.getElementById('pn'+i).textContent='📷 '+file.name.substring(0,16);
+        };
+        reader.readAsDataURL(file);
+      });
+    });
+
+    // song uploads
+    [0,1,2].forEach(i=>{
+      document.getElementById('si'+i).addEventListener('change',function(){
+        const file=this.files[0]; if(!file) return;
+        const reader=new FileReader();
+        reader.onload=ev=>{
+          const d=loadData();
+          d.memories[i].songData=ev.target.result;
+          d.memories[i].songName=file.name;
+          saveData(d);
+          document.getElementById('sn'+i).textContent='🎵 '+file.name.substring(0,16);
+          document.getElementById('rs'+i).style.display='block';
+        };
+        reader.readAsDataURL(file);
+      });
+    });
+
+    function removePhoto(i){
+      const d=loadData();
+      d.memories[i].photo=null;
+      saveData(d);
+      const thumb=document.getElementById('pt'+i);
+      thumb.src=''; thumb.classList.remove('show');
+      const emojis=['📍','⚡','🫂'];
+      document.getElementById('ph'+i).style.display='flex';
+      document.getElementById('ph'+i).textContent=emojis[i];
+      document.getElementById('pn'+i).textContent='';
+      document.getElementById('rp'+i).style.display='none';
+      document.getElementById('pi'+i).value='';
+    }
+    function removeSong(i){
+      const d=loadData();
+      d.memories[i].songData=null;
+      d.memories[i].songName=null;
+      saveData(d);
+      document.getElementById('sn'+i).textContent='';
+      document.getElementById('rs'+i).style.display='none';
+      document.getElementById('si'+i).value='';
+    }
+    window.removePhoto=removePhoto;
+    window.removeSong=removeSong;
+
+    function fillModal(){
+      const d=loadData();
+      // landing
+      const L=d.landing||{};
+      document.getElementById('landH1').value=L.h1a||'';
+      document.getElementById('landH2').value=L.h1b||'';
+      document.getElementById('landSub').value=L.sub||'';
+      document.getElementById('landBtn').value=L.btn||'';
+      document.getElementById('landHint').value=L.hint||'';
+      d.memories.forEach((m,i)=>{
+        document.getElementById('m'+i).value=m.msg||'';
+        if(m.photo){
+          const thumb=document.getElementById('pt'+i);
+          thumb.src=m.photo; thumb.classList.add('show');
+          document.getElementById('ph'+i).style.display='none';
+          document.getElementById('rp'+i).style.display='block';
+        }
+        if(m.songName){
+          document.getElementById('sn'+i).textContent='🎵 '+m.songName.substring(0,16);
+          document.getElementById('rs'+i).style.display='block';
+        }
+      });
+      d.quiz.forEach((q,i)=>{
+        document.getElementById('q'+i+'q').value=q.q||'';
+        q.opts.forEach((o,oi)=>{ document.getElementById(`q${i}o${oi}`).value=o||''; });
+        const r=document.querySelector(`input[name="c${i}"][value="${q.correct}"]`);
+        if(r) r.checked=true;
+        document.getElementById('q'+i+'ok').value=q.ok||'';
+        document.getElementById('q'+i+'fail').value=q.fail||'';
+      });
+      document.getElementById('propPre').value=d.proposal.pre||'';
+      document.getElementById('propQ').value=(d.proposal.q||'').replace(/<[^>]+>/g,'');
+      document.getElementById('endL1').value=d.ending.line1||'';
+      document.getElementById('endL2').value=d.ending.line2||'';
+      document.getElementById('endFunny').value=d.ending.funny||'';
+    }
+
+    document.getElementById('saveBtn').addEventListener('click',()=>{
+      const d=loadData();
+      // landing
+      d.landing=d.landing||{};
+      const lh1=document.getElementById('landH1').value.trim(); if(lh1) d.landing.h1a=lh1;
+      const lh2=document.getElementById('landH2').value.trim(); if(lh2) d.landing.h1b=lh2;
+      const ls=document.getElementById('landSub').value.trim(); if(ls) d.landing.sub=ls;
+      const lb=document.getElementById('landBtn').value.trim(); if(lb) d.landing.btn=lb;
+      const lhi=document.getElementById('landHint').value.trim(); if(lhi) d.landing.hint=lhi;
+      // memories text
+      d.memories.forEach((m,i)=>{
+        const v=document.getElementById('m'+i).value.trim();
+        if(v) m.msg=v;
+      });
+      // quiz
+      d.quiz.forEach((q,i)=>{
+        const qv=document.getElementById('q'+i+'q').value.trim(); if(qv) q.q=qv;
+        q.opts=q.opts.map((_,oi)=>{
+          const v=document.getElementById(`q${i}o${oi}`).value.trim();
+          return v||q.opts[oi];
+        });
+        const r=document.querySelector(`input[name="c${i}"]:checked`);
+        if(r) q.correct=parseInt(r.value);
+        const ok=document.getElementById('q'+i+'ok').value.trim(); if(ok) q.ok=ok;
+        const fail=document.getElementById('q'+i+'fail').value.trim(); if(fail) q.fail=fail;
+      });
+      // proposal
+      const pre=document.getElementById('propPre').value.trim(); if(pre) d.proposal.pre=pre;
+      const pq=document.getElementById('propQ').value.trim(); if(pq) d.proposal.q=pq;
+      // ending
+      const l1=document.getElementById('endL1').value.trim(); if(l1) d.ending.line1=l1;
+      const l2=document.getElementById('endL2').value.trim(); if(l2) d.ending.line2=l2;
+      const fn=document.getElementById('endFunny').value.trim(); if(fn) d.ending.funny=fn;
+      saveData(d);
+
+      // generate link
+      const link=generateShareLink(window.location.origin+window.location.pathname);
+      const errEl=document.getElementById('errMsg');
+      const linkBox=document.getElementById('linkBox');
+      if(!link){
+        errEl.classList.add('show'); linkBox.classList.remove('show'); return;
+      }
+      errEl.classList.remove('show');
+      document.getElementById('linkText').textContent=link;
+      linkBox.classList.add('show');
+    });
+
+    document.getElementById('copyBtn').addEventListener('click',()=>{
+      const link=document.getElementById('linkText').textContent;
+      navigator.clipboard.writeText(link).then(()=>{
+        document.getElementById('copyBtn').textContent='✅ Copied!';
+        setTimeout(()=>document.getElementById('copyBtn').textContent='📋 Copy Link',2000);
+      });
+    });
+  </script>
+</body>
+</html>

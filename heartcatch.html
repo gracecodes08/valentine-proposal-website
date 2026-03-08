@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Catch My Heart 💕</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,500&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    :root{--red:#e63946;--pink:#ff6b9d;--dark:#2d1b2e}
+    body{min-height:100vh;background:linear-gradient(160deg,#fff0f5 0%,#fce8ff 50%,#ffe8f0 100%);
+      font-family:'Nunito',sans-serif;display:flex;flex-direction:column;
+      align-items:center;justify-content:center;padding:1.5rem 1rem;overflow:hidden}
+    header{text-align:center;margin-bottom:1rem;z-index:10;animation:fadeDown .7s both}
+    @keyframes fadeDown{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+    header h1{font-family:'Playfair Display',serif;font-size:clamp(1.6rem,4vw,2.2rem);color:var(--dark)}
+    header h1 em{color:var(--red);font-style:italic}
+    header p{color:#9a6070;font-style:italic;margin-top:.3rem;font-size:.95rem}
+    .score-bar{margin-bottom:1rem;z-index:10}
+    .score-display{background:rgba(255,255,255,.8);border:2px solid rgba(255,255,255,.9);
+      border-radius:2rem;padding:.55rem 1.8rem;font-family:'Playfair Display',serif;
+      font-size:1.3rem;color:var(--dark);box-shadow:0 4px 20px rgba(230,57,70,.1);
+      display:inline-block;transition:transform .15s}
+    .score-display span{color:var(--red);font-style:italic}
+    .score-display.bump{transform:scale(1.2)}
+    #gameArea{position:relative;width:min(460px,92vw);height:min(400px,55vh);
+      background:rgba(255,255,255,.5);border:2px solid rgba(255,255,255,.9);
+      border-radius:2rem;overflow:hidden;box-shadow:0 12px 50px rgba(230,57,70,.12);
+      z-index:10;animation:popIn .6s cubic-bezier(.22,1,.36,1) both}
+    @keyframes popIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+    .heart-el{position:absolute;cursor:pointer;user-select:none;line-height:1;z-index:5}
+    .start-screen,.win-screen{position:absolute;inset:0;display:flex;flex-direction:column;
+      align-items:center;justify-content:center;gap:1rem;
+      background:rgba(255,240,248,.8);backdrop-filter:blur(6px);
+      z-index:20;border-radius:2rem;text-align:center;padding:2rem}
+    .win-screen{display:none}
+    .win-screen.show{display:flex;animation:fadeIn .4s ease}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    .start-screen p,.win-screen p{font-style:italic;color:#7a4050;line-height:1.6}
+    .win-screen h2{font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--dark);line-height:1.35}
+    .win-screen h2 em{color:var(--red);font-style:italic}
+    .action-btn{padding:.9rem 2.5rem;background:linear-gradient(135deg,var(--pink),var(--red));
+      color:#fff;font-family:'Playfair Display',serif;font-size:1.1rem;font-style:italic;
+      border:none;border-radius:100px;cursor:pointer;box-shadow:0 6px 22px rgba(230,57,70,.4);
+      transition:transform .2s}
+    .action-btn:hover{transform:scale(1.06)}
+    .win-actions{display:flex;gap:.8rem;flex-wrap:wrap;justify-content:center}
+    .win-actions a,.win-actions button{padding:.7rem 1.5rem;border-radius:100px;
+      font-family:'Playfair Display',serif;font-size:.95rem;font-style:italic;
+      cursor:pointer;text-decoration:none;transition:transform .2s}
+    .win-actions a{background:linear-gradient(135deg,var(--pink),var(--red));color:#fff;
+      box-shadow:0 4px 14px rgba(230,57,70,.35);border:none}
+    .win-actions button{background:rgba(255,255,255,.85);
+      border:2px solid rgba(230,57,70,.2);color:var(--red)}
+    .win-actions a:hover,.win-actions button:hover{transform:translateY(-2px)}
+    .spark{position:fixed;pointer-events:none;z-index:999;font-size:1.3rem;
+      animation:sparkUp .5s ease forwards}
+    @keyframes sparkUp{0%{opacity:1;transform:translate(-50%,-50%)scale(1.2)}
+      100%{opacity:0;transform:translate(-50%,-220%)scale(.2)}}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Catch My <em>Heart</em> 💕</h1>
+    <p>Click the falling hearts before they escape!</p>
+  </header>
+  <div class="score-bar">
+    <div class="score-display" id="scoreDisplay">❤️ <span id="scoreNum">0</span> / 3</div>
+  </div>
+  <div id="gameArea">
+    <div class="start-screen" id="startScreen">
+      <div style="font-size:3rem">💕</div>
+      <p>Hearts fall from the sky!<br/>Click them before they escape 👀</p>
+      <button class="action-btn" id="startBtn">Let's Go! 💖</button>
+    </div>
+    <div class="win-screen" id="winScreen">
+      <div style="font-size:2.5rem">🎉</div>
+      <h2>You're good at catching<br/><em>hearts...</em></h2>
+      <p>Now catch this question too. 👀</p>
+      <div class="win-actions">
+        <button id="replayBtn">Play Again 🔄</button>
+        <a id="nextLink" href="proposal.html">Big Question 💌</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // propagate share param to next page
+    const params = window.location.search;
+    if(params) document.getElementById('nextLink').href = 'proposal.html' + params;
+
+    const gameArea = document.getElementById('gameArea');
+    const scoreEl  = document.getElementById('scoreNum');
+    const scoreDisp= document.getElementById('scoreDisplay');
+    const EMOJIS   = ['❤️','💕','💖','💗','💓','🩷','💝'];
+    let score=0, running=false, spawnTimer=null;
+
+    function startGame(){
+      score=0; running=true;
+      scoreEl.textContent='0';
+      gameArea.querySelectorAll('.heart-el').forEach(h=>h.remove());
+      // spawn first hearts quickly
+      spawnHeart(); spawnHeart();
+      spawnTimer = setInterval(()=>{ if(running) spawnHeart(); }, 700);
+    }
+
+    document.getElementById('startBtn').addEventListener('click',()=>{
+      document.getElementById('startScreen').style.display='none';
+      startGame();
+    });
+
+    document.getElementById('replayBtn').addEventListener('click',()=>{
+      document.getElementById('winScreen').className='win-screen';
+      clearInterval(spawnTimer);
+      startGame();
+    });
+
+    function spawnHeart(){
+      const w = gameArea.offsetWidth;
+      const h = gameArea.offsetHeight;
+      const size = 24 + Math.floor(Math.random()*24);
+      const startX = 10 + Math.random()*(w - size - 20);
+      const speedY = 1.5 + Math.random()*2.2;
+      const drift  = (Math.random()-.5)*0.6;
+
+      const el = document.createElement('div');
+      el.className = 'heart-el';
+      el.textContent = EMOJIS[Math.floor(Math.random()*EMOJIS.length)];
+      el.style.cssText = `font-size:${size}px;left:${startX}px;top:-${size+10}px;`;
+      gameArea.appendChild(el);
+
+      let posY = -(size+10), posX = startX, caught = false;
+
+      el.addEventListener('click', function(e){
+        if(caught || !running) return;
+        caught = true;
+        e.stopPropagation();
+
+        // spark effect
+        const sp = document.createElement('div');
+        sp.className='spark'; sp.textContent='💖';
+        sp.style.left=e.clientX+'px'; sp.style.top=e.clientY+'px';
+        document.body.appendChild(sp);
+        setTimeout(()=>sp.remove(), 520);
+
+        el.style.transition='transform .2s,opacity .2s';
+        el.style.transform='scale(1.6)';
+        el.style.opacity='0';
+        setTimeout(()=>{ if(el.parentNode) el.remove(); },220);
+
+        score++;
+        scoreEl.textContent = score;
+        scoreDisp.classList.add('bump');
+        setTimeout(()=>scoreDisp.classList.remove('bump'),200);
+
+        if(score >= 3){
+          clearInterval(spawnTimer);
+          running = false;
+          setTimeout(()=>{
+            gameArea.querySelectorAll('.heart-el').forEach(h=>{
+              h.style.transition='opacity .3s';
+              h.style.opacity='0';
+              setTimeout(()=>h.remove(),300);
+            });
+            document.getElementById('winScreen').className='win-screen show';
+          },500);
+        }
+      });
+
+      // fall animation
+      const t = setInterval(()=>{
+        if(!el.parentNode){ clearInterval(t); return; }
+        posY += speedY;
+        posX += drift;
+        posX = Math.max(0, Math.min(w-size, posX));
+        el.style.top  = posY+'px';
+        el.style.left = posX+'px';
+        if(posY > h + 20){ el.remove(); clearInterval(t); }
+      }, 16);
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Our Story 📸</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,500&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    :root{--red:#e63946;--pink:#ff6b9d;--dark:#2d1b2e}
+    body{min-height:100vh;background:linear-gradient(160deg,#fff0f5 0%,#fce8ff 50%,#ffe8f0 100%);
+      font-family:'Nunito',sans-serif;padding:2.5rem 1rem 6rem}
+    header{text-align:center;margin-bottom:2.5rem;animation:fadeDown .7s both}
+    @keyframes fadeDown{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+    header h1{font-family:'Playfair Display',serif;font-size:clamp(1.8rem,5vw,2.8rem);color:var(--dark)}
+    header h1 em{color:var(--red);font-style:italic}
+    header p{color:#9a6070;font-style:italic;margin-top:.4rem}
+
+    .edit-bar{display:flex;justify-content:center;margin-bottom:2rem}
+    .edit-toggle{background:rgba(255,255,255,.7);border:1.5px solid rgba(230,57,70,.3);
+      border-radius:100px;padding:.5rem 1.4rem;font-family:'Nunito',sans-serif;
+      font-size:.9rem;color:var(--red);cursor:pointer;transition:background .2s}
+    .edit-toggle:hover{background:rgba(230,57,70,.08)}
+
+    .timeline{max-width:600px;margin:0 auto;display:flex;flex-direction:column;gap:2rem}
+
+    .card{background:rgba(255,255,255,.7);backdrop-filter:blur(14px);
+      border:2px solid rgba(255,255,255,.85);border-radius:2rem;overflow:hidden;
+      box-shadow:0 8px 40px rgba(230,57,70,.1);cursor:pointer;
+      transition:transform .4s cubic-bezier(.22,1,.36,1),box-shadow .4s;
+      animation:cardIn .6s both}
+    .card:nth-child(1){animation-delay:.1s}.card:nth-child(2){animation-delay:.25s}.card:nth-child(3){animation-delay:.4s}
+    @keyframes cardIn{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+    .card.expanded{transform:scale(1.04);box-shadow:0 24px 70px rgba(230,57,70,.22)}
+
+    .photo-area{position:relative;width:100%;height:230px;
+      background:linear-gradient(135deg,#ffd6e8,#e8d5ff);overflow:hidden}
+    .photo-area img{width:100%;height:100%;object-fit:cover;transition:transform .4s;display:none}
+    .photo-area img.loaded{display:block}
+    .card.expanded .photo-area img{transform:scale(1.06)}
+    .placeholder{width:100%;height:100%;display:flex;flex-direction:column;
+      align-items:center;justify-content:center;gap:.5rem;color:#c08090}
+    .placeholder span{font-size:2.5rem}
+    .placeholder p{font-style:italic;font-size:.9rem}
+    .badge{position:absolute;top:.8rem;left:.8rem;
+      background:linear-gradient(135deg,var(--pink),var(--red));color:#fff;
+      border-radius:50%;width:32px;height:32px;display:flex;align-items:center;
+      justify-content:center;font-weight:700;font-size:.85rem;
+      box-shadow:0 3px 12px rgba(230,57,70,.4)}
+
+    .upload-overlay{position:absolute;inset:0;background:rgba(230,57,70,.12);
+      display:none;align-items:center;justify-content:center}
+    .upload-overlay label{background:rgba(255,255,255,.92);border-radius:1rem;
+      padding:.6rem 1.2rem;font-size:.88rem;color:var(--red);cursor:pointer;font-weight:700}
+    .upload-overlay input{display:none}
+    body.editing .upload-overlay{display:flex}
+
+    .card-body{padding:1.2rem 1.5rem 1.5rem}
+    .msg{font-style:italic;color:#5a3040;font-size:1rem;line-height:1.6;margin-bottom:1rem}
+    .msg-edit{width:100%;font-family:'Nunito',sans-serif;font-size:1rem;font-style:italic;
+      color:#5a3040;background:rgba(255,255,255,.5);border:1.5px solid rgba(230,57,70,.2);
+      border-radius:.8rem;padding:.7rem 1rem;resize:none;outline:none;display:none;
+      line-height:1.6;margin-bottom:.8rem}
+    .msg-edit:focus{border-color:var(--pink)}
+    body.editing .msg{display:none}
+    body.editing .msg-edit{display:block}
+
+    .music-row{display:flex;align-items:center;gap:.8rem;flex-wrap:wrap}
+    .play-btn{display:flex;align-items:center;gap:.5rem;padding:.5rem 1.1rem;
+      background:rgba(230,57,70,.08);border:1.5px solid rgba(230,57,70,.2);
+      border-radius:100px;font-size:.88rem;color:var(--red);cursor:pointer;
+      font-family:'Nunito',sans-serif;transition:background .2s,transform .15s;font-weight:600}
+    .play-btn:hover{background:rgba(230,57,70,.15);transform:scale(1.04)}
+    .play-btn.active{background:linear-gradient(135deg,var(--pink),var(--red));
+      color:#fff;border-color:transparent;box-shadow:0 3px 14px rgba(230,57,70,.35)}
+    .play-btn .icon{font-size:1rem}
+    .play-btn.active .icon{animation:spin 1.5s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    .song-upload{display:flex;align-items:center;gap:.5rem}
+    .song-upload label{font-size:.8rem;color:var(--pink);cursor:pointer;font-style:italic;
+      border:1.5px dashed rgba(230,57,70,.3);border-radius:.6rem;padding:.3rem .8rem;
+      transition:background .2s}
+    .song-upload label:hover{background:rgba(255,107,157,.08)}
+    .song-upload input{display:none}
+
+    .expand-hint{font-size:.76rem;color:#c090a0;font-style:italic;margin-top:.5rem}
+    .card.expanded .expand-hint{display:none}
+
+    .continue-wrap{text-align:center;margin-top:3rem;animation:fadeUp .7s .5s both}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+    .continue-btn{display:inline-block;padding:1rem 2.5rem;
+      background:linear-gradient(135deg,var(--pink),var(--red));color:#fff;
+      font-family:'Playfair Display',serif;font-size:1.1rem;font-style:italic;
+      border:none;border-radius:100px;cursor:pointer;text-decoration:none;
+      box-shadow:0 6px 25px rgba(230,57,70,.4);transition:transform .2s,box-shadow .2s}
+    .continue-btn:hover{transform:translateY(-3px);box-shadow:0 10px 35px rgba(230,57,70,.5)}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Our <em>Little</em> Story</h1>
+    <p>The moments that started this whole beautiful mess 💕</p>
+  </header>
+  <div class="edit-bar" id="editBar">
+    <button class="edit-toggle" id="editToggle">✏️ Customize</button>
+  </div>
+  <div class="timeline" id="timeline"></div>
+  <div class="continue-wrap">
+    <a href="game.html" class="continue-btn" id="continueBtn">Continue the Adventure 🎲</a>
+  </div>
+
+  <script src="shared.js"></script>
+  <script>
+    if(isViewer()) document.getElementById('editBar').style.display='none';
+
+    let memories=loadData().memories;
+    let editMode=false, currentAudio=null, currentPlayBtn=null;
+    const timeline=document.getElementById('timeline');
+
+    function saveMemories(){
+      const d=loadData(); d.memories=memories; saveData(d);
+    }
+
+    function stopCurrent(){
+      if(currentAudio){currentAudio.pause();currentAudio.currentTime=0;}
+      if(currentPlayBtn){currentPlayBtn.classList.remove('active');currentPlayBtn.querySelector('.icon').textContent='▶';}
+      currentAudio=null;currentPlayBtn=null;
+    }
+
+    function render(){
+      timeline.innerHTML='';
+      memories.forEach((mem,i)=>{
+        const card=document.createElement('div');
+        card.className='card';
+        card.innerHTML=`
+          <div class="photo-area">
+            ${mem.photo?`<img src="${mem.photo}" class="loaded" alt="Memory ${i+1}"/>`
+              :`<div class="placeholder"><span>${mem.emoji}</span><p>Upload a photo ✨</p></div>`}
+            <div class="badge">${i+1}</div>
+            <div class="upload-overlay"><label>📷 Upload<input type="file" accept="image/*"/></label></div>
+          </div>
+          <div class="card-body">
+            <p class="msg">${mem.msg}</p>
+            <textarea class="msg-edit" rows="2" placeholder="Write memory...">${mem.msg}</textarea>
+            <div class="music-row">
+              <button class="play-btn"><span class="icon">▶</span> ${mem.songName?mem.songName.substring(0,18)+'…':'Play Song'}</button>
+              <div class="song-upload"><label>🎵 Song<input type="file" accept="audio/*" class="song-input"/></label></div>
+            </div>
+            <p class="expand-hint">tap to expand ✨</p>
+          </div>`;
+
+        card.addEventListener('click',e=>{
+          if(e.target.closest('.upload-overlay')||e.target.closest('.play-btn')||e.target.closest('.song-upload'))return;
+          card.classList.toggle('expanded');
+        });
+
+        card.querySelector('.play-btn').addEventListener('click',e=>{
+          e.stopPropagation();
+          const btn=card.querySelector('.play-btn');
+          if(currentPlayBtn===btn){stopCurrent();return;}
+          stopCurrent();
+          if(!mem.songData){btn.innerHTML='<span class="icon">▶</span> No song yet 🎵';
+            setTimeout(()=>{btn.innerHTML=`<span class="icon">▶</span> ${mem.songName||'Play Song'}`;},1500);return;}
+          const audio=new Audio(mem.songData);
+          audio.volume=0.7;audio.play().catch(()=>{});
+          audio.addEventListener('ended',()=>{btn.classList.remove('active');btn.querySelector('.icon').textContent='▶';currentAudio=null;currentPlayBtn=null;});
+          btn.classList.add('active');btn.querySelector('.icon').textContent='♫';
+          currentAudio=audio;currentPlayBtn=btn;
+        });
+
+        const photoInput=card.querySelector('.upload-overlay input[type=file]');
+        photoInput.addEventListener('change',function(e){
+          e.stopPropagation();
+          const file=this.files[0];if(!file)return;
+          const reader=new FileReader();
+          reader.onload=ev=>{memories[i].photo=ev.target.result;saveMemories();render();};
+          reader.readAsDataURL(file);
+        });
+
+        const songInput=card.querySelector('.song-input');
+        songInput.addEventListener('change',function(e){
+          e.stopPropagation();
+          const file=this.files[0];if(!file)return;
+          const reader=new FileReader();
+          reader.onload=ev=>{memories[i].songData=ev.target.result;memories[i].songName=file.name;saveMemories();render();};
+          reader.readAsDataURL(file);
+        });
+
+        const ta=card.querySelector('textarea.msg-edit');
+        ta.addEventListener('input',function(){memories[i].msg=this.value;saveMemories();});
+        ta.addEventListener('click',e=>e.stopPropagation());
+
+        timeline.appendChild(card);
+      });
+    }
+
+    document.getElementById('editToggle').addEventListener('click',()=>{
+      editMode=!editMode;
+      document.body.classList.toggle('editing',editMode);
+      document.getElementById('editToggle').textContent=editMode?'✅ Done':'✏️ Customize';
+    });
+
+    render();
+  </script>
+</body>
+</html>
